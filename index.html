@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ready Go Timer</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+
+    <style>
+        *{
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        }
+
+        body{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #121212;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .container{
+            text-align: center;
+        }
+
+        .main-btn{
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .main-btn.start{
+            background-color: #2ecc71;
+        }
+
+        .main-btn.start:active{
+            transform: scale(0.95);
+            background-color: #27ae60;
+        }
+
+        .main-btn.stop{
+            background-color: #e74c3c;
+        }
+
+        .main-btn.stop:active{
+            transform: scale(0.95);
+            background-color: #c0392b;
+        }
+
+        .status-text{
+            margin-top: 25px;
+            color: #aaaaaa;
+            font-size: 1.1rem;
+            height: 24px;
+        }
+
+        .footer-text {
+            margin-top: 40px;
+            font-size: 0.85rem;
+            color: yellow;
+            letter-spacing: 0.5px;
+        }
+
+
+
+
+
+
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <button id="toggleBtn" class="main-btn start">Start</button>
+        <div id="status" class="status-text">اضغط للبدء</div>
+        <audio id="beepAudio" src="sounds/ready-go.mp3" preload="auto"></audio>
+        <div class="footer-text">طوَر التطبيق بواسطة <bdi>SAMIR KHASHO</bdi></div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
+        }    
+                
+        const toggleBtn = document.getElementById('toggleBtn');
+        const statusText =  document.getElementById('status');
+        const mySound = document.getElementById('beepAudio');
+        
+
+        let isRunning = false;
+        let timerId = null;
+
+
+        function playReadyGoSound() {
+            mySound.currentTime = 0;
+            mySound.play();
+        }
+
+
+        function scheduleNextSound() {
+            if (!isRunning) return;
+
+            const minSeconds = 3;
+            const maxSeconds = 15;
+            const randomDelay = (Math.floor(Math.random() * (maxSeconds - minSeconds + 1)) + minSeconds) *1000;
+
+            timerId = setTimeout(() => {
+                if (isRunning) {
+                    playReadyGoSound();
+                    if (statusText) {
+                        statusText.innerText = 'تم إنطلاق الصوت! بانتظار المرة القادمة...';
+                    }
+                    scheduleNextSound();
+                }
+            }, randomDelay);
+            }
+
+         toggleBtn.addEventListener('click', () => {
+
+            if (!isRunning) {
+                isRunning = true;
+
+                mySound.play().then(() => {
+                    mySound.pause();
+                    mySound.currentTime = 0;
+                }).catch(() => {});
+                
+                toggleBtn.innerText = 'إيقاف';
+                toggleBtn.className = 'main-btn stop';
+                if(statusText) {
+                    statusText.innerText = 'التطبيق يعمل... الفواصل الزمنية عشوائية';
+                }
+                scheduleNextSound();
+            } else{
+                isRunning = false;
+                clearTimeout(timerId);
+                mySound.pause();
+                mySound.currentTime = 0;
+                toggleBtn.innerText = 'تشغيل';
+                toggleBtn.className = 'main-btn start';
+                if(statusText) {
+                    statustext.innerText = 'متوقف';
+                }
+            }
+         });   
+            
+    </script>
+</body>
+
+</html>
